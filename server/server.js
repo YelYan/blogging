@@ -18,7 +18,7 @@ const app = express();
 const originUrl =
   process.env.NODE_ENV === "development"
     ? process.env.URI || "http://localhost:5173"
-    : "https://bloghub-yelyan.vercel.app/";
+    : process.env.URI || "https://bloghub-yelyan.vercel.app/";
 
 app.use(express.json());
 app.use(
