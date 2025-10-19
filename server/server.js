@@ -15,15 +15,27 @@ connectDatabase();
 
 const app = express();
 
-const originUrl =
-  process.env.NODE_ENV === "development"
-    ? process.env.URI || "http://localhost:5173"
-    : process.env.URI || "https://bloghub-yelyan.vercel.app/";
+const allowedOrigins = [
+  "http://localhost:5173", // Local development
+  "https://bloghub-yelyan.vercel.app",
+];
 
 app.use(express.json());
 app.use(
   cors({
-    origin: originUrl,
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   })
 );
 
