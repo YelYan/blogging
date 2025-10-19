@@ -14,7 +14,7 @@ import Register from "./pages/Register";
 // import StoryDetail from "./pages/StoryDetail";
 // import CreateStory from "./pages/CreateStory";
 // import Profile from "./pages/Profile";
-import ProtectedRoute from "./components/ProtectedRoute";
+// import ProtectedRoute from "./components/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
 
 const queryClient = new QueryClient();
