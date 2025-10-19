@@ -15,10 +15,15 @@ connectDatabase();
 
 const app = express();
 
+const originUrl =
+  process.env.NODE_ENV === "development"
+    ? process.env.URI || "http://localhost:3000"
+    : process.env.URI || "https://mern-blog-for-portfolio.vercel.app";
+
 app.use(express.json());
 app.use(
   cors({
-    origin: "https://mern-blog-for-portfolio.vercel.app",
+    origin: originUrl,
   })
 );
 
