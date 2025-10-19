@@ -80,18 +80,27 @@ UserSchema.methods.generateJwtFromUser = function () {
 UserSchema.methods.getResetPasswordTokenFromUser = function () {
   const { RESET_PASSWORD_EXPIRE } = process.env;
 
+  // Generate random token
   const randomHexString = crypto.randomBytes(20).toString("hex");
 
-  const resetPasswordToken = crypto
+  // Hash token and save to database
+  this.resetPasswordToken = crypto
     .createHash("SHA256")
     .update(randomHexString)
     .digest("hex");
 
-  this.resetPasswordToken = resetPasswordToken;
+  // Set expire time (1 hour from now)
+  this.resetPasswordExpire =
+    Date.now() + parseInt(RESET_PASSWORD_EXPIRE || 3600000);
 
-  this.resetPasswordExpire = Date.now() + parseInt(RESET_PASSWORD_EXPIRE);
+  console.log("Token Generated:", {
+    unhashed: randomHexString,
+    hashed: this.resetPasswordToken,
+    expires: new Date(this.resetPasswordExpire),
+  });
 
-  return resetPasswordToken;
+  // Return the UNHASHED token for the email
+  return randomHexString;
 };
 
 const User = mongoose.model("User", UserSchema);

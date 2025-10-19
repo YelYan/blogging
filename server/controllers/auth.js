@@ -86,13 +86,30 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
     });
   }
 
-  // Get reset token
+  // Get reset token (unhashed version for email)
   const resetToken = user.getResetPasswordTokenFromUser();
 
+  // Save user with hashed token in database
   await user.save({ validateBeforeSave: false });
 
-  // Create reset url
-  const resetUrl = `${process.env.URI}/reset-password/${resetToken}`;
+  // Create reset url with UNHASHED token
+  const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+  console.log("Password Reset Request:", {
+    email: user.email,
+    resetToken: resetToken,
+    resetUrl: resetUrl,
+    tokenExpires: user.resetPasswordExpire,
+  });
+
+  // Development mode - log the URL
+  if (process.env.NODE_ENV === "development") {
+    console.log("\n=================================");
+    console.log("PASSWORD RESET URL:");
+    console.log(resetUrl);
+    console.log("Token expires at:", new Date(user.resetPasswordExpire));
+    console.log("=================================\n");
+  }
 
   const html = `
         <!DOCTYPE html>
@@ -145,31 +162,32 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
         "If an account exists with that email, a password reset link has been sent.",
     });
   } catch (err) {
-    console.error(err);
+    console.error("Email send error:", err);
+
+    // Reset token fields if email fails
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
-
     await user.save({ validateBeforeSave: false });
 
     return next(new ErrorResponse("Email could not be sent", 500));
   }
 });
 
-// @desc    Reset password
-// @route   PUT /api/auth/resetpassword/:resettoken
+// @desc    Verify reset token
+// @route   GET /api/auth/resetpassword/:resettoken
 // @access  Public
-const resetPassword = asyncHandler(async (req, res, next) => {
-  const { password } = req.body;
+const verifyResetToken = asyncHandler(async (req, res, next) => {
+  const { resettoken } = req.params;
 
-  if (!password) {
-    return next(new ErrorResponse("Please provide a new password", 400));
-  }
+  console.log("Verifying token:", resettoken);
 
-  // Get hashed token
+  // Hash the token from URL
   const resetPasswordToken = crypto
     .createHash("SHA256")
-    .update(req.params.resettoken)
+    .update(resettoken)
     .digest("hex");
+
+  console.log("Hashed token for lookup:", resetPasswordToken);
 
   const user = await User.findOne({
     resetPasswordToken,
@@ -177,8 +195,60 @@ const resetPassword = asyncHandler(async (req, res, next) => {
   });
 
   if (!user) {
+    // Check if token exists but expired
+    const expiredUser = await User.findOne({ resetPasswordToken });
+
+    if (expiredUser) {
+      console.log("Token expired at:", expiredUser.resetPasswordExpire);
+      console.log("Current time:", new Date());
+      return next(new ErrorResponse("Reset token has expired", 400));
+    }
+
+    console.log("Token not found in database");
+    return next(new ErrorResponse("Invalid reset token", 400));
+  }
+
+  console.log("Token valid for user:", user.email);
+  console.log("Token expires at:", user.resetPasswordExpire);
+
+  res.status(200).json({
+    success: true,
+    message: "Token is valid",
+  });
+});
+
+// @desc    Reset password
+// @route   PUT /api/auth/resetpassword/:resettoken
+// @access  Public
+const resetPassword = asyncHandler(async (req, res, next) => {
+  const { password } = req.body;
+  const { resettoken } = req.params;
+
+  console.log("Resetting password with token:", resettoken);
+
+  if (!password) {
+    return next(new ErrorResponse("Please provide a new password", 400));
+  }
+
+  // Hash the token from URL
+  const resetPasswordToken = crypto
+    .createHash("SHA256")
+    .update(resettoken)
+    .digest("hex");
+
+  console.log("Looking for hashed token:", resetPasswordToken);
+
+  const user = await User.findOne({
+    resetPasswordToken,
+    resetPasswordExpire: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    console.log("User not found or token expired");
     return next(new ErrorResponse("Invalid or expired reset token", 400));
   }
+
+  console.log("Resetting password for user:", user.email);
 
   // Set new password
   user.password = password;
@@ -187,7 +257,7 @@ const resetPassword = asyncHandler(async (req, res, next) => {
 
   await user.save();
 
-  // Send success email
+  // Send success email (optional)
   const html = `
         <!DOCTYPE html>
         <html>
@@ -197,7 +267,6 @@ const resetPassword = asyncHandler(async (req, res, next) => {
                 .container { max-width: 600px; margin: 0 auto; padding: 20px; }
                 .header { background-color: #10B981; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
                 .content { background-color: #f4f4f4; padding: 20px; border-radius: 0 0 5px 5px; }
-                .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
             </style>
         </head>
         <body>
@@ -209,15 +278,6 @@ const resetPassword = asyncHandler(async (req, res, next) => {
                     <p>Hi ${user.username},</p>
                     <p>Your password has been successfully reset.</p>
                     <p>If you did not make this change, please contact our support team immediately.</p>
-                    <p>For security reasons, we recommend that you:</p>
-                    <ul>
-                        <li>Use a strong, unique password</li>
-                        <li>Enable two-factor authentication if available</li>
-                        <li>Never share your password with anyone</li>
-                    </ul>
-                </div>
-                <div class="footer">
-                    <p>© 2024 BlogHub. All rights reserved.</p>
                 </div>
             </div>
         </body>
@@ -235,30 +295,6 @@ const resetPassword = asyncHandler(async (req, res, next) => {
   }
 
   sendTokenResponse(user, 200, res);
-});
-
-// @desc    Verify reset token
-// @route   GET /api/auth/resetpassword/:resettoken
-// @access  Public
-const verifyResetToken = asyncHandler(async (req, res, next) => {
-  const resetPasswordToken = crypto
-    .createHash("SHA256")
-    .update(req.params.resettoken)
-    .digest("hex");
-
-  const user = await User.findOne({
-    resetPasswordToken,
-    resetPasswordExpire: { $gt: Date.now() },
-  });
-
-  if (!user) {
-    return next(new ErrorResponse("Invalid or expired reset token", 400));
-  }
-
-  res.status(200).json({
-    success: true,
-    message: "Token is valid",
-  });
 });
 
 // Get token from model and send response

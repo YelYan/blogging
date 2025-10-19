@@ -6,6 +6,7 @@ const {
   logout,
   forgotPassword,
   resetPassword,
+  verifyResetToken,
 } = require("../controllers/auth.js");
 const { protect } = require("../middleware/auth/auth.middleware.js");
 
