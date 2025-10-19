@@ -1,6 +1,6 @@
 const express = require("express");
 
-const imageUpload = require("../Helpers/Libraries/imageUpload");
+const imageUpload = require("../helpers/Libraries/imageUpload");
 
 const {
   profile,
