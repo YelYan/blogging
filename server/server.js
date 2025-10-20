@@ -20,7 +20,11 @@ const allowedOrigins = [
   "https://bloghub-yelyan.vercel.app",
 ];
 
-app.use(express.json());
+// Body parser
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// CORS
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -39,7 +43,19 @@ app.use(
   })
 );
 
+// Serve static files
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 app.use("/api/v1", IndexRoute);
+
+// Health check endpoint
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Server is running",
+    timestamp: new Date().toISOString(),
+  });
+});
 
 app.use(customErrorHandler);
 
