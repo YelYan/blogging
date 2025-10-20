@@ -7,7 +7,6 @@ import StoryGrid from "@/components/home/StoryGrid";
 import CategoryFilter from "@/components/home/CategoryFilter";
 import TrendingSection from "@/components/home/TrendingSection";
 import NewsletterSection from "@/components/home/NewsLetterSection";
-import StatsSection from "@/components/home/StatsSection";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -35,22 +34,17 @@ export default function Home() {
 
   const { data: featuredData } = useQuery({
     queryKey: ["featured-stories"],
-    queryFn: storyApi.getFeaturedStories,
+    queryFn: () => storyApi.getFeaturedStories(),
   });
 
   const { data: trendingData } = useQuery({
     queryKey: ["trending-stories"],
-    queryFn: storyApi.getTrendingStories,
+    queryFn: () => storyApi.getTrendingStories(),
   });
 
   const { data: categoriesData } = useQuery({
     queryKey: ["categories"],
-    queryFn: storyApi.getCategories,
-  });
-
-  const { data: statsData } = useQuery({
-    queryKey: ["story-stats"],
-    queryFn: storyApi.getStoryStats,
+    queryFn: () => storyApi.getCategories(),
   });
 
   const handleSearch = (e: React.FormEvent) => {
@@ -62,9 +56,6 @@ export default function Home() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <HeroSection />
-
-      {/* Stats Section */}
-      {statsData && <StatsSection stats={statsData.data} />}
 
       {/* Featured Stories */}
       {featuredData && featuredData.data.length > 0 && (
