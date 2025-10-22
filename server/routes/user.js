@@ -1,30 +1,53 @@
 const express = require("express");
-
-const imageUpload = require("../helpers/Libraries/imageUpload");
-
 const {
   profile,
+  getPublicProfile,
   editProfile,
   changePassword,
+  followUser,
+  unfollowUser,
+  getFollowers,
+  getFollowing,
+  toggleBookmark,
+  getBookmarks,
   addStoryToReadList,
   readListPage,
-} = require("../controllers/user");
-const { getAccessToRoute } = require("../Middlewares/Authorization/auth");
+  getTopAuthors,
+  searchUsers,
+  updateUserStats,
+} = require("../controllers/user.controller");
+const { protect } = require("../middleware/auth/auth.middleware");
+const {
+  uploadUserAvatar,
+} = require("../middleware/uploadimg/upload.middleware");
 
 const router = express.Router();
 
-router.get("/profile", getAccessToRoute, profile);
+// Public routes
+router.get("/top-authors", getTopAuthors);
+router.get("/search", searchUsers);
+router.get("/:userId", getPublicProfile);
+router.get("/:userId/followers", getFollowers);
+router.get("/:userId/following", getFollowing);
 
-router.post(
-  "/editProfile",
-  [getAccessToRoute, imageUpload.single("photo")],
-  editProfile
-);
+// Protected routes
+router.use(protect); // All routes below require authentication
 
-router.put("/changePassword", getAccessToRoute, changePassword);
+router.get("/profile/me", profile);
+router.put("/profile/edit", uploadUserAvatar, editProfile);
+router.put("/profile/change-password", changePassword);
+router.put("/profile/update-stats", updateUserStats);
 
-router.post("/:slug/addStoryToReadList", getAccessToRoute, addStoryToReadList);
+// Follow/Unfollow
+router.put("/:userId/follow", followUser);
+router.put("/:userId/unfollow", unfollowUser);
 
-router.get("/readList", getAccessToRoute, readListPage);
+// Bookmarks
+router.get("/bookmarks/list", getBookmarks);
+router.put("/bookmarks/:storyId", toggleBookmark);
+
+// Read List
+router.get("/readlist/all", readListPage);
+router.put("/readlist/:slug", addStoryToReadList);
 
 module.exports = router;

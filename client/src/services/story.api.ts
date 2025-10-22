@@ -36,6 +36,7 @@ export const storyApi = {
     const config = storyData instanceof FormData 
       ? { headers: { 'Content-Type': 'multipart/form-data' } }
       : {};
+
     const { data } = await client.put(`/stories/${id}`, storyData, config);
     return data;
   },

@@ -102,7 +102,7 @@ const storyTitles = [
 
 const generateUsers = (count = 10) => {
   const users = [];
-  const password = bcrypt.hashSync("password123", 10);
+  const password = bcrypt.hashSync("Password123", 10);
 
   // Create admin user
   users.push({

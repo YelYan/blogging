@@ -4,19 +4,64 @@ export interface User {
   username: string;
   email: string;
   photo: string;
-  role: 'user' | 'admin';
   bio?: string;
-  readList?: string[];
-  readListLength?: number;
-  bookmarks?: string[];
-  followers?: string[];
-  followersCount?: number;
-  following?: string[];
-  followingCount?: number;
-  stories?: string[];
-  storyCount?: number;
+  role: 'user' | 'admin' | 'moderator';
+  location?: string;
+  website?: string;
+  socialLinks?: {
+    twitter?: string;
+    github?: string;
+    linkedin?: string;
+    facebook?: string;
+  };
+  followers?: string[] | User[];
+  followersCount: number;
+  following?: string[] | User[];
+  followingCount: number;
+  stories?: string[] | Story[];
+  storyCount: number;
+  readList?: string[] | Story[];
+  readListLength: number;
+  bookmarks?: string[] | Story[];
+  bookmarkCount: number;
+  emailNotifications?: {
+    newFollower: boolean;
+    newComment: boolean;
+    newLike: boolean;
+    newsletter: boolean;
+  };
+  isEmailVerified: boolean;
+  isActive: boolean;
+  isBanned: boolean;
+  totalViews: number;
+  totalLikes: number;
+  reputation: number;
+  lastLogin?: string;
   createdAt: string;
   updatedAt: string;
+  profileUrl?: string;
+  isFollowing?: boolean; // For public profile view
+}
+
+export interface UpdateProfileData {
+  username?: string;
+  email?: string;
+  bio?: string;
+  location?: string;
+  website?: string;
+  photo?: File;
+  socialLinks?: {
+    twitter?: string;
+    github?: string;
+    linkedin?: string;
+    facebook?: string;
+  };
+  emailNotifications?: {
+    newFollower: boolean;
+    newComment: boolean;
+    newLike: boolean;
+    newsletter: boolean;
+  };
 }
 
 export interface Story {
@@ -86,6 +131,7 @@ export interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   loading: boolean;
+  error: string | null;
 }
 
 export interface LoginCredentials {

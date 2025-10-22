@@ -10,8 +10,8 @@ const {
 const path = require("path");
 
 // Models
-const User = require("./models/User");
-const Story = require("./models/Story");
+const User = require("./models/user");
+const Story = require("./models/story");
 const Comment = require("./models/comment");
 
 // Load env vars

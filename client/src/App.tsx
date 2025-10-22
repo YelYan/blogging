@@ -11,10 +11,11 @@ import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-// import StoryDetail from "./pages/StoryDetail";
-// import CreateStory from "./pages/CreateStory";
+import StoryDetail from "./pages/StoryDetail";
+import CreateStory from "./pages/CreateStory";
+import EditStory from "./pages/EditStory";
 // import Profile from "./pages/Profile";
-// import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -29,10 +30,15 @@ const router = createBrowserRouter(
       <Route path="register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password/:token" element={<ResetPassword />} />
+      <Route path="/story/:slug" element={<StoryDetail />} />
       {/* 
-      <Route path="story/:slug" element={<StoryDetail />} />
+      <Route path="/search" element={<Search />} />
+      <Route path="/category/:category" element={<Category />} />
+      <Route path="/tag/:tag" element={<Tag />} />
+      <Route path="/profile/:userId" element={<Profile />} /> */}
+
       <Route
-        path="create-story"
+        path="/create-story"
         element={
           <ProtectedRoute>
             <CreateStory />
@@ -40,13 +46,48 @@ const router = createBrowserRouter(
         }
       />
       <Route
-        path="profile"
+        path="/story/:id/edit"
         element={
           <ProtectedRoute>
-            <Profile />
+            <EditStory />
           </ProtectedRoute>
         }
-      /> */}
+      />
+      {/* 
+   
+
+              <Route
+                path="/story/:id/edit"
+                element={
+                  <ProtectedRoute>
+                    <EditStory />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/bookmarks"
+                element={
+                  <ProtectedRoute>
+                    <Bookmarks />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                }
+              /> */}
     </Route>
   )
 );
